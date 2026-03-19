@@ -54,15 +54,21 @@ async function startServer() {
         throw authError;
       }
 
-      console.log('Usuário Auth criado:', authData.user.id);
+      // 2. Validar se o ID do usuário existe
+      const newUserId = authData.user?.id;
+      if (!newUserId) {
+        throw new Error('O Supabase Auth criou o usuário mas não retornou um ID válido.');
+      }
 
-      // 2. Criar perfil na tabela profiles
-      console.log('Criando perfil na tabela profiles...');
+      console.log('Usuário Auth criado com sucesso. ID:', newUserId);
+
+      // 3. Criar perfil na tabela profiles usando o ID em user_id
+      console.log('Inserindo perfil na tabela profiles...');
       const { error: profileError } = await supabaseAdmin
         .from('profiles')
         .insert([
           {
-            id: authData.user.id, // Usando 'id' em vez de 'user_id'
+            user_id: newUserId, // Mapeamento correto para a coluna user_id
             nome,
             tipo_permissao,
             ativo,
@@ -71,26 +77,25 @@ async function startServer() {
         ]);
 
       if (profileError) {
-        console.error('Erro ao inserir perfil:', profileError);
-        // Tentar deletar o usuário auth se o perfil falhar para manter consistência
-        await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-        throw profileError;
+        console.error('Erro ao inserir perfil no banco:', profileError);
+        // Rollback: Deletar o usuário auth se o perfil falhar
+        await supabaseAdmin.auth.admin.deleteUser(newUserId);
+        throw new Error(`Erro ao criar perfil: ${profileError.message}`);
       }
 
-      console.log('Perfil criado com sucesso!');
+      console.log('Usuário e Perfil criados com sucesso!');
       res.status(201).json({ 
         message: 'Usuário criado com sucesso', 
         user: {
-          id: authData.user.id,
-          email: authData.user.email,
-          nome
+          id: newUserId,
+          email: email,
+          nome: nome
         }
       });
     } catch (error: any) {
-      console.error('Erro fatal na criação de usuário:', error);
-      res.status(error.status || 500).json({ 
-        error: error.message || 'Erro interno do servidor',
-        details: error
+      console.error('Falha crítica na criação de usuário:', error);
+      res.status(error.status || 400).json({ 
+        error: error.message || 'Erro interno ao processar criação de usuário'
       });
     }
   });
