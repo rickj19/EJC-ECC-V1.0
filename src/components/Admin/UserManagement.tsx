@@ -102,15 +102,30 @@ export const UserManagement: React.FC = () => {
         if (error) throw error;
         alert('Usuário atualizado com sucesso!');
       } else {
-        // Criar Novo Usuário via API Segura
+        // Criar Novo Usuário via API Segura com tratamento robusto
         const response = await fetch('/api/admin/create-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
         });
 
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Erro ao criar usuário');
+        // 1. Ler como texto primeiro para evitar erro de parse direto
+        const responseText = await response.text();
+        let result;
+
+        try {
+          // 2. Tentar converter para JSON
+          result = JSON.parse(responseText);
+        } catch (e) {
+          // 3. Se não for JSON, capturar o erro HTML/Texto
+          console.error('Resposta do servidor não é JSON:', responseText);
+          throw new Error(`Erro do servidor (${response.status}): ${responseText.substring(0, 100)}...`);
+        }
+
+        // 4. Validar response.ok
+        if (!response.ok) {
+          throw new Error(result.error || result.message || 'Erro desconhecido ao criar usuário');
+        }
         
         alert('Usuário criado com sucesso!');
       }
@@ -118,8 +133,8 @@ export const UserManagement: React.FC = () => {
       setIsModalOpen(false);
       fetchUsers();
     } catch (error: any) {
-      console.error('Erro:', error);
-      alert(error.message);
+      console.error('Erro detalhado:', error);
+      alert(`Erro: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }

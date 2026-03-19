@@ -32,10 +32,16 @@ async function startServer() {
 
   // API: Criar novo usuário (Apenas Admin)
   app.post('/api/admin/create-user', async (req, res) => {
+    console.log('Recebendo requisição para criar usuário:', req.body.email);
     const { email, password, nome, tipo_permissao, ativo } = req.body;
+
+    if (!email || !password || !nome) {
+      return res.status(400).json({ error: 'Campos obrigatórios ausentes: email, password e nome são necessários.' });
+    }
 
     try {
       // 1. Criar usuário no Supabase Auth
+      console.log('Criando usuário no Supabase Auth...');
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
@@ -43,14 +49,20 @@ async function startServer() {
         user_metadata: { nome }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Erro no Supabase Auth:', authError);
+        throw authError;
+      }
+
+      console.log('Usuário Auth criado:', authData.user.id);
 
       // 2. Criar perfil na tabela profiles
+      console.log('Criando perfil na tabela profiles...');
       const { error: profileError } = await supabaseAdmin
         .from('profiles')
         .insert([
           {
-            user_id: authData.user.id,
+            id: authData.user.id, // Usando 'id' em vez de 'user_id'
             nome,
             tipo_permissao,
             ativo,
@@ -58,12 +70,28 @@ async function startServer() {
           }
         ]);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Erro ao inserir perfil:', profileError);
+        // Tentar deletar o usuário auth se o perfil falhar para manter consistência
+        await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+        throw profileError;
+      }
 
-      res.status(201).json({ message: 'Usuário criado com sucesso', user: authData.user });
+      console.log('Perfil criado com sucesso!');
+      res.status(201).json({ 
+        message: 'Usuário criado com sucesso', 
+        user: {
+          id: authData.user.id,
+          email: authData.user.email,
+          nome
+        }
+      });
     } catch (error: any) {
-      console.error('Erro ao criar usuário:', error);
-      res.status(400).json({ error: error.message });
+      console.error('Erro fatal na criação de usuário:', error);
+      res.status(error.status || 500).json({ 
+        error: error.message || 'Erro interno do servidor',
+        details: error
+      });
     }
   });
 
