@@ -18,7 +18,7 @@ import { supabase } from './lib/supabase';
 import { getUserProfile, logout, getCurrentSession } from './services/authService';
 import { useEffect } from 'react';
 
-type View = 'HOME' | 'CHOICE' | 'LOGIN' | 'REGISTRATION' | 'DASHBOARD' | 'ADMIN_PANEL' | 'ADMIN_LOGIN';
+type View = 'HOME' | 'CHOICE' | 'LOGIN' | 'REGISTRATION' | 'ADMIN_PANEL' | 'EJC_PANEL' | 'ECC_PANEL' | 'ADMIN_LOGIN';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('HOME');
@@ -28,32 +28,50 @@ export default function App() {
   const [adminProfile, setAdminProfile] = useState<Profile | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
-  // Verifica sessão ao carregar
+  // Redirecionamento baseado no perfil
+  const redirectByProfile = (profile: Profile) => {
+    if (profile.tipo_permissao === 'admin_geral') {
+      setCurrentView('ADMIN_PANEL');
+    } else if (profile.tipo_permissao === 'ejc') {
+      setCurrentView('EJC_PANEL');
+    } else if (profile.tipo_permissao === 'ecc') {
+      setCurrentView('ECC_PANEL');
+    }
+  };
+
+  // Verifica sessão ao carregar e monitora mudanças
   useEffect(() => {
     const checkSession = async () => {
-      const session = await getCurrentSession();
-      
-      if (session?.user) {
-        const profile = await getUserProfile(session.user.id);
-        if (profile) {
-          if (!profile.ativo) {
-            alert('Sua conta está inativa. Entre em contato com o administrador.');
-            await logout();
-            return;
+      try {
+        const session = await getCurrentSession();
+        if (session?.user) {
+          const profile = await getUserProfile(session.user.id);
+          if (profile) {
+            if (!profile.ativo) {
+              alert('Sua conta está inativa. Entre em contato com o administrador.');
+              await logout();
+              return;
+            }
+            setCurrentUser(session.user);
+            setAdminProfile(profile);
+            // Só redireciona se estiver na HOME ou LOGIN
+            if (currentView === 'HOME' || currentView === 'LOGIN' || currentView === 'ADMIN_LOGIN') {
+              redirectByProfile(profile);
+            }
           }
-          setCurrentUser(session.user);
-          setAdminProfile(profile);
-          setCurrentView('ADMIN_PANEL');
         }
+      } catch (error) {
+        console.error('Erro ao verificar sessão inicial:', error);
+      } finally {
+        setIsAuthChecking(false);
       }
-      setIsAuthChecking(false);
     };
 
     checkSession();
 
-    // Listener para mudanças de auth
+    // Listener para mudanças de auth (Login, Logout, Refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
         const profile = await getUserProfile(session.user.id);
         if (profile) {
           if (!profile.ativo) {
@@ -63,7 +81,12 @@ export default function App() {
           }
           setCurrentUser(session.user);
           setAdminProfile(profile);
-          setCurrentView('ADMIN_PANEL');
+          
+          // Só redireciona automaticamente se o evento for SIGNED_IN (login explícito)
+          // ou se estivermos em uma tela de login/home com uma sessão válida
+          if (event === 'SIGNED_IN' || currentView === 'HOME' || currentView === 'LOGIN' || currentView === 'ADMIN_LOGIN') {
+            redirectByProfile(profile);
+          }
         }
       } else if (event === 'SIGNED_OUT') {
         setCurrentUser(null);
@@ -73,7 +96,7 @@ export default function App() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [currentView]); // Adicionado currentView como dependência para controle de redirecionamento
 
   const handleLoginClick = (role: UserRole) => {
     if (role === 'ADMIN') {
@@ -93,9 +116,10 @@ export default function App() {
     setCurrentUser(user);
     if (profile) {
       setAdminProfile(profile);
-      setCurrentView('ADMIN_PANEL');
+      redirectByProfile(profile);
     } else {
-      setCurrentView('DASHBOARD');
+      // Caso padrão se não houver perfil (não deve acontecer com a lógica atual)
+      setCurrentView('HOME');
     }
   };
 
@@ -104,6 +128,14 @@ export default function App() {
       await logout();
     } catch (error) {
       console.error('Erro ao sair:', error);
+    }
+  };
+
+  const handleBackToPanel = () => {
+    if (adminProfile) {
+      redirectByProfile(adminProfile);
+    } else {
+      setCurrentView('HOME');
     }
   };
 
@@ -247,24 +279,17 @@ export default function App() {
             <RegistrationForm 
               key="registration"
               eventType={selectedEventType} 
-              onBack={() => setCurrentView('HOME')} 
+              onBack={handleBackToPanel} 
             />
           )}
 
-          {currentView === 'DASHBOARD' && currentUser && (
-            <Dashboard 
-              key="dashboard"
-              user={currentUser} 
-              onLogout={handleLogout} 
-            />
-          )}
-
-          {currentView === 'ADMIN_PANEL' && currentUser && (
+          {(currentView === 'ADMIN_PANEL' || currentView === 'EJC_PANEL' || currentView === 'ECC_PANEL') && currentUser && (
             <AdminPanel 
               key="admin"
               user={currentUser} 
               profile={adminProfile}
               onLogout={handleLogout} 
+              onNewRegistration={handleRegistrationClick}
             />
           )}
 

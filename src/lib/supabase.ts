@@ -10,5 +10,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Inicialização estável do cliente Supabase
 export const supabase = createClient(
   supabaseUrl || '',
-  supabaseAnonKey || ''
+  supabaseAnonKey || '',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    }
+  }
 );

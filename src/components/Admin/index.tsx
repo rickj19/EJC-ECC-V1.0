@@ -2,7 +2,7 @@ import React from 'react';
 import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { useAdminData } from '../../hooks/useAdminData';
-import { Profile, Registration } from '../../types';
+import { Profile, Registration, EventType } from '../../types';
 
 // Sub-componentes
 import { AdminHeader } from './AdminHeader';
@@ -20,6 +20,7 @@ interface AdminPanelProps {
   user: any;
   profile: Profile | null;
   onLogout: () => void;
+  onNewRegistration: (type: EventType) => void;
 }
 
 type AdminView = 'REGISTRATIONS' | 'USERS';
@@ -28,7 +29,7 @@ type AdminView = 'REGISTRATIONS' | 'USERS';
  * Painel Administrativo Principal.
  * Orquestra todos os sub-componentes e utiliza o hook useAdminData para gerenciar o estado.
  */
-export const AdminPanel: React.FC<AdminPanelProps> = ({ user, profile, onLogout }) => {
+export const AdminPanel: React.FC<AdminPanelProps> = ({ user, profile, onLogout, onNewRegistration }) => {
   const [currentView, setCurrentView] = useState<AdminView>('REGISTRATIONS');
   const {
     filteredRegistrations,
@@ -71,6 +72,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ user, profile, onLogout 
       <AdminHeader 
         onExport={handleExport} 
         onLogout={onLogout} 
+        onNewRegistration={onNewRegistration}
+        profile={profile}
       />
 
       {/* Navegação de Abas (Apenas para Admin Geral) */}
