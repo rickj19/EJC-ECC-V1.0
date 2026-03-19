@@ -31,7 +31,7 @@ async function startServer() {
   app.use(express.json());
 
   // API: Criar novo usuário (Apenas Admin)
-  app.post('/api/admin/create-user', async (req, res) => {
+  app.post('/api/create-user', async (req, res) => {
     console.log('Recebendo requisição para criar usuário:', req.body.email);
     const { email, password, nome, tipo_permissao, ativo } = req.body;
 
@@ -112,6 +112,11 @@ async function startServer() {
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
+  });
+
+  // 404 para rotas de API não encontradas
+  app.all('/api/*', (req, res) => {
+    res.status(404).json({ error: 'API route not found' });
   });
 
   // Vite middleware para desenvolvimento

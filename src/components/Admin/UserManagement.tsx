@@ -103,7 +103,7 @@ export const UserManagement: React.FC = () => {
         alert('Usuário atualizado com sucesso!');
       } else {
         // Criar Novo Usuário via API Segura com tratamento robusto
-        const response = await fetch('/api/admin/create-user', {
+        const response = await fetch('/api/create-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
