@@ -132,6 +132,12 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
+    
+    // Specific routes for multi-page structure
+    app.get('/admin', (req, res) => res.sendFile(path.join(distPath, 'admin.html')));
+    app.get('/ejc', (req, res) => res.sendFile(path.join(distPath, 'ejc.html')));
+    app.get('/ecc', (req, res) => res.sendFile(path.join(distPath, 'ecc.html')));
+    
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });

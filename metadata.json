@@ -1,6 +1,6 @@
 {
   "name": "EJC/ECC V1.0",
-  "description": "Sistema responsivo para cadastro de encontristas (EJC/ECC) com gestão para coordenadores e integração com Supabase.",
+  "description": "Sistema multi-páginas para cadastro de encontristas (EJC/ECC) com gestão para coordenadores, controle de acesso por perfil e integração com Supabase.",
   "requestFramePermissions": [
     "camera"
   ]

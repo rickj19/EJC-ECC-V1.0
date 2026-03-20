@@ -1,0 +1,101 @@
+.dashboard-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(210, 180, 140, 0.2);
+}
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.user-avatar {
+    width: 3rem;
+    height: 3rem;
+    background-color: var(--church-brown-dark);
+    color: var(--church-gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+.stat-box {
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(210, 180, 140, 0.2);
+    text-align: center;
+}
+.stat-box h3 {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--church-brown-medium);
+    margin-bottom: 0.5rem;
+}
+.stat-box .value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--church-brown-dark);
+}
+.data-list {
+    background-color: var(--white);
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(210, 180, 140, 0.2);
+    overflow: hidden;
+}
+.list-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #edf2f7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.list-item {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #edf2f7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+.list-item:hover {
+    background-color: #f9fafb;
+}
+.item-info h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--church-brown-dark);
+}
+.item-info p {
+    font-size: 0.875rem;
+    color: var(--church-brown-medium);
+}
+.badge-ecc {
+    background-color: #fef3c7;
+    color: #92400e;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}

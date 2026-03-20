@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECC - Paróquia de São Francisco das Chagas</title>
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/ecc.css">
+</head>
+<body>
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; font-weight: 500;">Carregando painel ECC...</p>
+    </div>
+
+    <nav>
+        <div class="nav-container">
+            <a href="/ecc.html" class="logo">
+                <div class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-main">São Francisco</span>
+                    <span class="logo-sub">Painel ECC</span>
+                </div>
+            </a>
+            <button id="logout-btn" class="btn btn-outline" style="width: auto; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Sair
+            </button>
+        </div>
+    </nav>
+
+    <div id="main-content" class="dashboard-layout hidden">
+        <div class="header-section">
+            <div class="user-info">
+                <div class="user-avatar" id="user-initials">U</div>
+                <div>
+                    <h1 class="font-serif" style="font-size: 1.5rem;">Olá, <span id="user-name">Usuário</span></h1>
+                    <p style="color: var(--church-brown-medium); font-size: 0.875rem;">Bem-vindo ao painel do ECC</p>
+                </div>
+            </div>
+            <button class="btn btn-gold" style="width: auto;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Fazer Inscrição ECC
+            </button>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-box">
+                <h3>Minhas Inscrições</h3>
+                <div class="value" id="stat-my-registrations">0</div>
+            </div>
+            <div class="stat-box">
+                <h3>Status do Sistema</h3>
+                <div class="value" style="font-size: 1.25rem; color: #15803d;">ATIVO</div>
+            </div>
+        </div>
+
+        <div class="data-list">
+            <div class="list-header">
+                <h3 class="font-serif">Inscrições ECC</h3>
+                <span class="badge-ecc">TODAS</span>
+            </div>
+            <div id="registrations-list">
+                <!-- Data will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/js/ecc.js"></script>
+</body>
+</html>
