@@ -1,6 +1,6 @@
 import React from 'react';
 import { AnimatePresence } from 'motion/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAdminData } from '../../hooks/useAdminData';
 import { Profile, Registration, EventType } from '../../types';
 
@@ -65,6 +65,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ user, profile, onLogout,
   };
 
   const isAdminGeral = profile?.tipo_permissao === 'admin_geral';
+
+  // Garantir que apenas admin_geral possa ver a aba de usuários
+  useEffect(() => {
+    if (!isAdminGeral && currentView === 'USERS') {
+      setCurrentView('REGISTRATIONS');
+    }
+  }, [currentView, isAdminGeral]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">

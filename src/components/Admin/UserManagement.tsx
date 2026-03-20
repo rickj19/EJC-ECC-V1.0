@@ -25,6 +25,7 @@ export const UserManagement: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -41,18 +42,38 @@ export const UserManagement: React.FC = () => {
 
   const fetchUsers = async () => {
     setIsLoading(true);
+    console.log('Iniciando busca de usuários...');
+    
+    // Timeout de segurança para evitar loading infinito
+    const timeoutId = setTimeout(() => {
+      setIsLoading(prev => {
+        if (prev) {
+          console.warn('Busca de usuários demorando demais, forçando fim do loading.');
+          return false;
+        }
+        return prev;
+      });
+    }, 10000);
+
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro retornado pelo Supabase:', error);
+        throw error;
+      }
+      
+      console.log('Usuários buscados com sucesso:', data?.length || 0);
       setUsers(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao buscar usuários:', error);
-      alert('Erro ao carregar lista de usuários.');
+      // Mostrar erro amigável
+      setErrorMsg(error.message || 'Erro desconhecido ao carregar lista de usuários.');
     } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
     }
   };
@@ -155,10 +176,12 @@ export const UserManagement: React.FC = () => {
     }
   };
 
-  const filteredUsers = users.filter(user => 
-    user.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const nome = user.nome || '';
+    const email = user.email || '';
+    return nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           email.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const getPermissionBadge = (type: PermissionType) => {
     const styles = {
@@ -208,6 +231,18 @@ export const UserManagement: React.FC = () => {
 
       {/* Tabela */}
       <div className="bg-white rounded-3xl shadow-xl shadow-church-brown-dark/5 border border-church-bege/20 overflow-hidden">
+        {errorMsg && (
+          <div className="p-6 bg-red-50 border-b border-red-100 flex items-center space-x-3 text-red-600">
+            <XCircle size={20} />
+            <span className="text-sm font-medium">{errorMsg}</span>
+            <button 
+              onClick={() => { setErrorMsg(null); fetchUsers(); }}
+              className="ml-auto text-xs font-bold uppercase tracking-widest hover:underline"
+            >
+              Tentar Novamente
+            </button>
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>

@@ -50,6 +50,9 @@ async function startServer() {
       });
 
       if (authError) {
+        if (authError.message.includes('already been registered')) {
+          return res.status(400).json({ error: 'Este e-mail já está cadastrado no sistema.' });
+        }
         console.error('Erro no Supabase Auth:', authError);
         throw authError;
       }

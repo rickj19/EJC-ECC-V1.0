@@ -36,8 +36,36 @@ export default function App() {
       setCurrentView('EJC_PANEL');
     } else if (profile.tipo_permissao === 'ecc') {
       setCurrentView('ECC_PANEL');
+    } else {
+      setCurrentView('HOME');
     }
   };
+
+  // Efeito para garantir que o usuário está na view correta de acordo com sua permissão
+  useEffect(() => {
+    if (adminProfile && currentUser) {
+      const { tipo_permissao, ativo } = adminProfile;
+
+      // Se o usuário não estiver ativo, desloga
+      if (!ativo) {
+        alert('Sua conta está inativa. Entre em contato com o administrador.');
+        handleLogout();
+        return;
+      }
+
+      // Bloqueio de acesso cruzado
+      if (tipo_permissao === 'ejc' && (currentView === 'ECC_PANEL' || currentView === 'ADMIN_PANEL')) {
+        setCurrentView('EJC_PANEL');
+      } else if (tipo_permissao === 'ecc' && (currentView === 'EJC_PANEL' || currentView === 'ADMIN_PANEL')) {
+        setCurrentView('ECC_PANEL');
+      } else if (tipo_permissao !== 'admin_geral' && currentView === 'ADMIN_PANEL') {
+        redirectByProfile(adminProfile);
+      }
+    } else if (!currentUser && (currentView === 'ADMIN_PANEL' || currentView === 'EJC_PANEL' || currentView === 'ECC_PANEL')) {
+      // Se não estiver logado e tentar acessar um painel, volta para home
+      setCurrentView('HOME');
+    }
+  }, [currentView, adminProfile, currentUser]);
 
   // Verifica sessão ao carregar e monitora mudanças
   useEffect(() => {

@@ -7,7 +7,7 @@ import { UserRole } from '../types';
 interface LoginFormProps {
   role: UserRole;
   onBack: () => void;
-  onLoginSuccess: (user: any) => void;
+  onLoginSuccess: (user: any, profile: any) => void;
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({ role, onBack, onLoginSuccess }) => {
@@ -23,26 +23,50 @@ export const LoginForm: React.FC<LoginFormProps> = ({ role, onBack, onLoginSucce
     setError(null);
 
     try {
-      // Caso especial para o Administrador padrão solicitado
-      if (role === 'ADMIN' && email === 'adm' && password === '@dmin') {
-        setIsSuccess(true);
-        setTimeout(() => onLoginSuccess({ email: 'adm', role: 'ADMIN' }), 2000);
-        return;
-      }
-
+      // 1. Autenticação no Supabase Auth
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (authError) throw authError;
+      if (!data.user) throw new Error('Usuário não encontrado.');
+
+      // 2. Busca o perfil para verificar permissões e status
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', data.user.id)
+        .single();
+
+      if (profileError || !profile) {
+        await supabase.auth.signOut();
+        throw new Error('Você não tem permissão para acessar esta área ou perfil não encontrado.');
+      }
+
+      if (!profile.ativo) {
+        await supabase.auth.signOut();
+        throw new Error('Sua conta está inativa. Entre em contato com o administrador.');
+      }
+
+      // 3. Validar se o perfil condiz com a área selecionada (EJC ou ECC)
+      const userRole = profile.tipo_permissao;
+      if (userRole !== 'admin_geral') {
+        if (role === 'COORDINATOR_EJC' && userRole !== 'ejc') {
+          await supabase.auth.signOut();
+          throw new Error('Este usuário não tem permissão para acessar a área EJC.');
+        }
+        if (role === 'COORDINATOR_ECC' && userRole !== 'ecc') {
+          await supabase.auth.signOut();
+          throw new Error('Este usuário não tem permissão para acessar a área ECC.');
+        }
+      }
 
       setIsSuccess(true);
-      // Por enquanto apenas mostrar mensagem e depois prosseguir
-      setTimeout(() => onLoginSuccess({ ...data.user, role }), 2000);
+      setTimeout(() => onLoginSuccess(data.user, profile), 2000);
     } catch (err: any) {
       console.error('Erro de login:', err);
-      setError('Credenciais inválidas ou erro de conexão. Verifique seus dados e tente novamente.');
+      setError(err.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos.' : err.message || 'Erro ao realizar login.');
     } finally {
       setIsLoading(false);
     }

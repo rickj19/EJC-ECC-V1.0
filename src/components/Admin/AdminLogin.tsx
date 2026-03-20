@@ -50,7 +50,13 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBack }
         throw new Error('Sua conta está inativa. Entre em contato com o administrador.');
       }
 
-      // 3. Sucesso!
+      // 3. Validar se é Admin Geral
+      if (profile.tipo_permissao !== 'admin_geral') {
+        await supabase.auth.signOut();
+        throw new Error('Este acesso é exclusivo para Administradores Gerais. Use o acesso EJC ou ECC na tela inicial.');
+      }
+
+      // 4. Sucesso!
       onLoginSuccess(data.user, profile);
     } catch (err: any) {
       console.error('Erro de login:', err);
